@@ -1,12 +1,14 @@
 package com.brawkurly.moneytoring.domain;
 
 import lombok.Data;
+import lombok.Getter;
 import org.hibernate.annotations.Columns;
 
 import javax.persistence.*;
 
 @Entity
 @Table(name = "item")
+@Getter
 public class Item {
 
     @Id
