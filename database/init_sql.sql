@@ -74,8 +74,8 @@ DROP TABLE IF EXISTS `consumer_price`;
 CREATE TABLE `consumer_price` (
   `consumer_price_id` bigint NOT NULL AUTO_INCREMENT,
   `price` int NOT NULL,
-  `create_at` datetime NOT NULL,
-  `status` enum('예약','구매') NOT NULL,
+  `reservation_time` datetime,
+  `purchase_time` datetime,
   `item_id` bigint NOT NULL,
   PRIMARY KEY (`consumer_price_id`),
   KEY `fk_consumer_price_id_item_id_idx` (`item_id`),
