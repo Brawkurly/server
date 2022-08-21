@@ -1,4 +1,4 @@
-create database moneytoring;
+-- create database moneytoring;
 
 use moneytoring;
 
@@ -27,7 +27,7 @@ DROP TABLE IF EXISTS `item`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `item` (
-  `item_id` bigint NOT NULL,
+  `item_id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `current_price` int NOT NULL,
   `supply_price` int NOT NULL,
@@ -72,7 +72,7 @@ DROP TABLE IF EXISTS `consumer_price`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `consumer_price` (
-  `consumer_price_id` bigint NOT NULL,
+  `consumer_price_id` bigint NOT NULL AUTO_INCREMENT,
   `price` int NOT NULL,
   `create_at` datetime NOT NULL,
   `status` enum('예약','구매') NOT NULL,
@@ -119,7 +119,7 @@ DROP TABLE IF EXISTS `competitor`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `competitor` (
-  `competitor_id` bigint NOT NULL,
+  `competitor_id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `price` int NOT NULL,
   `create_at` date NOT NULL,
@@ -166,7 +166,7 @@ DROP TABLE IF EXISTS `change_price`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `change_price` (
-  `change_price_id` bigint NOT NULL,
+  `change_price_id` bigint NOT NULL AUTO_INCREMENT,
   `price` int NOT NULL,
   `create_at` date NOT NULL,
   `item_id` bigint NOT NULL,
