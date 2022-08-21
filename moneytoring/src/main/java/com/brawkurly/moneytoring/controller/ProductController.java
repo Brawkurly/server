@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,6 +49,8 @@ public class ProductController {
         private int totalSalesCnt;
         private int consumerReservationCnt;
         private List<ChangePriceDto> changePrice = new ArrayList<>();
+        private List<ConsumerPopularityDto> consumerPopularityPurchase = new ArrayList<>();
+        private List<ConsumerPopularityDto> consumerPopularityReserve = new ArrayList<>();
     }
 
     @Getter
@@ -64,5 +67,13 @@ public class ProductController {
     public static class ChangePriceDto{
         private int price;
         private Date createAt;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ConsumerPopularityDto {
+        private String productName;
+        private Long cnt;
     }
 }
