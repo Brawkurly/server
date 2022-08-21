@@ -19,15 +19,32 @@ public class OrderService {
     private final ItemRepository itemRepository;
 
     /*
-    * 소비자 예약 가격 저장
-    * key : consumer_price(테이블 명)::productName(상품 명)
+    * 소비자 예약 저장
+    * key : consumer_price(테이블 명):status(상태-reserve):productName(상품 명)
     * */
     @Transactional
     public void addReserve(String productName, int price) {
-        Long productId = itemRepository.findByName(productName).getId();
-        System.out.println("productId = " + productId);
+        Long productId = findProductId(productName);
         ConsumerPriceDto consumerPriceDto = new ConsumerPriceDto(productId, productName, price, LocalDateTime.now(), null);
-        String key = "consumer_price::"+productId;
+        insertRedis("reserve",consumerPriceDto);
+    }
+
+    /*
+     * 소비자 구매 저장
+     * key : consumer_price(테이블 명):status(상태-purchase):productName(상품 명)
+     * */
+    public void addBuy(String productName, int price) {
+        Long productId = findProductId(productName);
+        ConsumerPriceDto consumerPriceDto = new ConsumerPriceDto(productId, productName, price, null, LocalDateTime.now());
+        insertRedis("purchase",consumerPriceDto);
+    }
+
+    private Long findProductId(String productName) {
+        return itemRepository.findByName(productName).getId();
+    }
+
+    private void insertRedis(String status, ConsumerPriceDto consumerPriceDto) {
+        String key = "consumer_price:" + status + ":" + consumerPriceDto.getProductId();
         redisTemplate.opsForList().leftPush(key, consumerPriceDto);
         redisTemplate.expireAt(key, Date.from(ZonedDateTime.now().plusDays(1).toInstant())); // 유효기간 TTL 1일 설정
     }
