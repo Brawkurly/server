@@ -18,6 +18,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -60,6 +61,8 @@ public class ProductService {
             responseDto.getChangePrice().add(changePriceDto);
         }
 
+        /*해당 상품의 가격대별 예약 수*/
+        responseDto.setConsumerReserveCnt(findReserveCnt(id));
 
         /*실시간 인기 구매 상품 현황
          * key : consumer_price(테이블 명):status(상태-purchase/reserve):productId(상품아이디)
@@ -105,10 +108,7 @@ public class ProductService {
         // 레디스에 들어있는 데이터가 20이하 -> mysql에서 부족한 수만큼 들고와야함
         if (needSize > 0) {
             List<ConsumerPriceDto> consumerPriceDtoList = listOperations.range(key, 0, size);
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // timestamp 형식 안따르도록 설정
-            mapper.registerModules(new JavaTimeModule(), new Jdk8Module()); // LocalDateTime 매핑을 위해 모듈 활성화
-            List<ConsumerPriceDto> mappedList = mapper.convertValue(consumerPriceDtoList, new TypeReference<List<ConsumerPriceDto>>() {});
+            List<ConsumerPriceDto> mappedList = objectMapper().convertValue(consumerPriceDtoList, new TypeReference<List<ConsumerPriceDto>>() {});
             for (int i = 0; i < size; i++) {
                 result.add(new ConsumerRecentReserveDto(mappedList.get(i).getPrice(), mappedList.get(i).getReservationTime()));
             }
@@ -129,5 +129,54 @@ public class ProductService {
             }
         }
         return result;
+    }
+
+    /*
+     * 해당 상품을 가격대별 예약 수
+     * */
+    public List<Map<String, Long>> findReserveCnt(Long id){
+        Map<Long, Long> allPriceMap = new ConcurrentHashMap<>();
+        // 레디스에서 데이터 가져오기
+        ListOperations<String, ConsumerPriceDto> listOperations = redisTemplate.opsForList();
+        String key = "consumer_price:reserve:"+id;
+        List<ConsumerPriceDto> consumerPriceDtoList = listOperations.range(key, 0, -1);
+        List<ConsumerPriceDto> mappedList = objectMapper().convertValue(consumerPriceDtoList, new TypeReference<List<ConsumerPriceDto>>() {});
+        for (ConsumerPriceDto consumerPrice : mappedList) {
+            Long price = Long.valueOf(consumerPrice.getPrice());
+            if (allPriceMap.get(price) == null) {
+                allPriceMap.put(price, 1L);
+            } else {
+                allPriceMap.put(price, allPriceMap.get(price)+1);
+            }
+        }
+
+        // mysql에서 데이터 가져오기
+        Optional<Item> item = itemRepository.findById(id);
+        List<Map<String, Long>> rdbCntList = consumerPriceRepository.findGroupByReserveCnt(item.get());
+        for (Map<String, Long> rdbCnt: rdbCntList){
+            Long price = Long.valueOf(String.valueOf(rdbCnt.get("price")));
+            if (allPriceMap.get(price) == null) {
+                allPriceMap.put(price, Long.valueOf(rdbCnt.get("cnt")));
+            } else {
+                allPriceMap.put(price, allPriceMap.get(price) + Long.valueOf(rdbCnt.get("cnt")));
+            }
+        }
+        List<Map<String, Long>> result = new ArrayList<>();
+        Object[] keyArray = allPriceMap.keySet().toArray();
+        Arrays.sort(keyArray);
+        for (Object price : keyArray) {
+            Map<String, Long> tmp = new ConcurrentHashMap<>();
+            tmp.put("price", (Long) price);
+            tmp.put("cnt", allPriceMap.get(price));
+            result.add(tmp);
+        }
+        return result;
+    }
+
+    private ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // timestamp 형식 안따르도록 설정
+        mapper.registerModules(new JavaTimeModule(), new Jdk8Module()); // LocalDateTime 매핑을 위해 모듈 활성화
+        return mapper;
     }
 }

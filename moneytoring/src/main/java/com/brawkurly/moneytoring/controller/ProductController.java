@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/product")
@@ -46,6 +47,7 @@ public class ProductController {
         private int supplyPrice;
         private int fairPrice;
         private List<ConsumerRecentReserveDto> consumerRecentReserve = new ArrayList<>(); // 상품별 최근 소비자 예약 현황 20개
+        private List<Map<String, Long>> consumerReserveCnt; // 해당 상품의 가격대별 예약 수
         private Long totalPrice;
         private int totalSalesCnt;
         private int consumerReservationCnt;
