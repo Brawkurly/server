@@ -12,16 +12,15 @@ public class ConsumerPrice {
     @Column(name="consumer_price_id")
     private Long id;
 
-    private int price;
-
-    @Column(name="create_at")
-    private LocalDateTime createAt;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="item_id")
     private Item item;
 
-    @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "ENUM('예약', '구매')")
-    private ConsumerPriceStatus status;
+    private int price;
+
+    @Column(name="reservation_time")
+    private LocalDateTime reservationTime;
+
+    @Column(name="purchase_time")
+    private LocalDateTime purchaseTime;
 }
