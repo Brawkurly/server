@@ -1,10 +1,13 @@
 package com.brawkurly.moneytoring.domain;
 
+import lombok.Getter;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "consumer_price")
+@Getter
 public class ConsumerPrice {
 
     @Id
