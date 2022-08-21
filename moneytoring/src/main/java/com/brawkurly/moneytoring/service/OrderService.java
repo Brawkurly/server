@@ -44,8 +44,14 @@ public class OrderService {
     }
 
     private void insertRedis(String status, ConsumerPriceDto consumerPriceDto) {
-        String key = "consumer_price:" + status + ":" + consumerPriceDto.getProductId();
-        redisTemplate.opsForList().leftPush(key, consumerPriceDto);
-        redisTemplate.expireAt(key, Date.from(ZonedDateTime.now().plusDays(1).toInstant())); // 유효기간 TTL 1일 설정
+        // 예약 저장
+        String key1 = "consumer_price:" + status + ":" + consumerPriceDto.getProductId();
+        redisTemplate.opsForList().leftPush(key1, consumerPriceDto);
+        redisTemplate.expireAt(key1, Date.from(ZonedDateTime.now().plusDays(1).toInstant())); // 유효기간 TTL 1일 설정
+
+        // 가격대별로 예약 수 저장
+        String key2 = "consumer_price_cnt:" + status + ":" + consumerPriceDto.getProductId() + ":" + consumerPriceDto.getPrice();
+        redisTemplate.opsForList().leftPush(key2, true);
+        redisTemplate.expireAt(key2, Date.from(ZonedDateTime.now().plusDays(1).toInstant())); // 유효기간 TTL 1일 설정
     }
 }

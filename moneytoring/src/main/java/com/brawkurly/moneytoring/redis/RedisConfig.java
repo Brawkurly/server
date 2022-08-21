@@ -21,7 +21,6 @@ public class RedisConfig {
     @Value("${spring.redis.port}")
     private int port;
 
-    // jackson LocalDateTime mapper
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
