@@ -187,3 +187,92 @@ CREATE TABLE `change_price` (
 
 -- Dump completed on 2022-08-20 22:48:36
 
+-- 상품 가격 insert 
+INSERT INTO `moneytoring`.`item`
+(`name`,
+`current_price`,
+`supply_price`,
+`fair_price`)
+VALUES
+("당도선별 서귀포 감귤 1.5kg",
+16800,
+12100,
+16800);
+
+INSERT INTO `moneytoring`.`item`
+(`name`,
+`current_price`,
+`supply_price`,
+`fair_price`)
+VALUES
+("[달콤트리] 고당도 제주 감귤 1.5kg",
+23900,
+18500,
+23900);
+
+INSERT INTO `moneytoring`.`item`
+(`name`,
+`current_price`,
+`supply_price`,
+`fair_price`)
+VALUES
+("[KF365] 호박고구마 800g/봉",
+4780,
+3340,
+4780);
+
+INSERT INTO `moneytoring`.`item`
+(`name`,
+`current_price`,
+`supply_price`,
+`fair_price`)
+VALUES
+("[KF365] 밤고구마 800g/봉",
+5580,
+4120,
+5580);
+
+INSERT INTO `moneytoring`.`item`
+(`name`,
+`current_price`,
+`supply_price`,
+`fair_price`)
+VALUES
+("영광 신동진 쌀 10kg",
+29900,
+22600,
+29900);
+
+INSERT INTO `moneytoring`.`item`
+(`name`,
+`current_price`,
+`supply_price`,
+`fair_price`)
+VALUES
+("임금님표 이천쌀(추청) 10kg",
+31900,
+24600,
+31900);
+
+INSERT INTO `moneytoring`.`item`
+(`name`,
+`current_price`,
+`supply_price`,
+`fair_price`)
+VALUES
+("[한국농협김치] 포기김치 2.5kg",
+22000,
+17300,
+22000);
+
+INSERT INTO `moneytoring`.`item`
+(`name`,
+`current_price`,
+`supply_price`,
+`fair_price`)
+VALUES
+("[한국의집] 배추김치 2.5kg",
+30000,
+23900,
+30000);
+
