@@ -17,6 +17,9 @@ import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,7 +32,6 @@ public class ProductService {
     private final ChangePriceRepository changePriceRepository;
 
     private final RedisTemplate redisTemplate;
-
 
     private final ConsumerPriceRepository consumerPriceRepository;
 
@@ -49,7 +51,7 @@ public class ProductService {
 
         /*상품별 소비자 예약 현황 컴포넌트*/
 
-        responseDto.setConsumerRecentReserve(findRecentReserve(id));
+       responseDto.setConsumerRecentReserve(findRecentReserve(id));
 
         /*상품별 마켓컬리 가격변동 컴포넌트*/
         PageRequest pageRequest = PageRequest.of(0, 49, Sort.by(Sort.Direction.DESC, "createAt"));
@@ -74,6 +76,12 @@ public class ProductService {
          * key : consumer_price(테이블 명):status(상태-reserve):productId(상품아이디)
          * */
         consumerPopularity("reserve", responseDto);
+
+
+        /*오늘 판매 현황 컴포넌트
+         * key : consumer_price(테이블 명):status(상태-reserve):productId(상품아이디)
+         * */
+        todayData(responseDto, item.get());
 
         return responseDto;
     }
@@ -179,4 +187,41 @@ public class ProductService {
         mapper.registerModules(new JavaTimeModule(), new Jdk8Module()); // LocalDateTime 매핑을 위해 모듈 활성화
         return mapper;
     }
+
+    public void todayData(ProductController.ResponseDto responseDto, Item item){
+
+        /*해당 상품 판매 데이터*/
+        String purchaseKey = "consumer_price:" + "purchase:" + responseDto.getProductId();
+        ListOperations<String, ConsumerPriceDto> purchaseListOperations = redisTemplate.opsForList();
+        List<ConsumerPriceDto> purchaseConsumerPriceDtoList = purchaseListOperations.range(purchaseKey, 0, -1);
+        List<ConsumerPriceDto> purchaseMappedList = objectMapper().convertValue(purchaseConsumerPriceDtoList, new TypeReference<List<ConsumerPriceDto>>() {});
+
+        /*오늘 하루 해당 상품의 총 판매 금액입니다.*/
+        Long sum = 0L;
+        for(int i=0; i<purchaseMappedList.size(); i++){
+            System.out.println(purchaseMappedList.get(i).getProductName() + " " + purchaseMappedList.get(i).getPrice());
+            sum += purchaseMappedList.get(i).getPrice();
+        }
+        responseDto.setTotalPrice(sum);
+
+        /*오늘 하루 해당 상품의 총 판매 수입니다.*/
+        responseDto.setTotalSalesCnt(purchaseListOperations.size(purchaseKey));
+
+        /*전일 대비 판매율입니다. ((오늘-어제)/어제)*100 */
+        LocalDateTime startDatetime = LocalDateTime.of(LocalDate.now().minusDays(1), LocalTime.of(0,0,0)); //어제 00:00:00
+        LocalDateTime endDatetime = LocalDateTime.of(LocalDate.now().minusDays(1), LocalTime.of(23,59,59)); //어제 23:59:59
+        Long yesterdaySum = consumerPriceRepository.findAllByPurchaseTimeBetween(item, startDatetime, endDatetime);
+        if(yesterdaySum==null) yesterdaySum = 0L;
+        float per = (((float) sum-(float)yesterdaySum))/(float)yesterdaySum*100;
+        responseDto.setDayToDay(per);
+
+        /*해당 상품 예약 데이터*/
+        String reserveKey = "consumer_price:" + "reserve:" + responseDto.getProductId();
+        ListOperations<String, ConsumerPriceDto> reserveListOperations = redisTemplate.opsForList();
+        List<ConsumerPriceDto> reserveConsumerPriceDtoList = reserveListOperations.range(reserveKey, 0, -1);
+
+        /*오늘 하루 해당 상품의 총 예약 수입니다.*/
+        responseDto.setConsumerReservationCnt(reserveListOperations.size(reserveKey));
+    }
+
 }

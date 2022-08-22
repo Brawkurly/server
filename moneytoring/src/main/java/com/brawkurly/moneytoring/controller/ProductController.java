@@ -48,9 +48,10 @@ public class ProductController {
         private int fairPrice;
         private List<ConsumerRecentReserveDto> consumerRecentReserve = new ArrayList<>(); // 상품별 최근 소비자 예약 현황 20개
         private List<Map<String, Long>> consumerReserveCnt; // 해당 상품의 가격대별 예약 수
-        private Long totalPrice;
-        private int totalSalesCnt;
-        private int consumerReservationCnt;
+        private Long totalPrice; // 총 판매 금액
+        private Long totalSalesCnt; // 총 판매 수
+        private Long consumerReservationCnt; // 해당 상품의 예약 수
+        private float dayToDay; // 전일 대비 판매 비율
         private List<ConsumerPopularityDto> consumerPopularityPurchase = new ArrayList<>();
         private List<ConsumerPopularityDto> consumerPopularityReserve = new ArrayList<>();
         private List<ChangePriceDto> changePrice = new ArrayList<>();   // 가격변동
