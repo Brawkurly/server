@@ -54,6 +54,7 @@ public class ProductController {
         private float dayToDay; // 전일 대비 판매 비율
         private List<ConsumerPopularityDto> consumerPopularityPurchase = new ArrayList<>();
         private List<ConsumerPopularityDto> consumerPopularityReserve = new ArrayList<>();
+        private List<CompetitorPriceDto> competitorPrice = new ArrayList<>();
         private List<ChangePriceDto> changePrice = new ArrayList<>();   // 가격변동
     }
 
@@ -72,5 +73,13 @@ public class ProductController {
     public static class ConsumerPopularityDto {
         private String productName;
         private Long cnt;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CompetitorPriceDto {
+        private String competitor;
+        private Long price;
     }
 }
