@@ -15,11 +15,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -51,7 +53,7 @@ public class ProductService {
 
         /*상품별 소비자 예약 현황 컴포넌트*/
 
-       responseDto.setConsumerRecentReserve(findRecentReserve(id));
+        //responseDto.setConsumerRecentReserve(findRecentReserve(id));
 
         /*상품별 마켓컬리 가격변동 컴포넌트*/
         PageRequest pageRequest = PageRequest.of(0, 49, Sort.by(Sort.Direction.DESC, "createAt"));
@@ -82,6 +84,11 @@ public class ProductService {
          * key : consumer_price(테이블 명):status(상태-reserve):productId(상품아이디)
          * */
         todayData(responseDto, item.get());
+
+        /*
+        * 경쟁가 업데이트
+        * */
+        changeCompetitor(responseDto);
 
         return responseDto;
     }
@@ -222,6 +229,35 @@ public class ProductService {
 
         /*오늘 하루 해당 상품의 총 예약 수입니다.*/
         responseDto.setConsumerReservationCnt(reserveListOperations.size(reserveKey));
+    }
+
+    public void changeCompetitor(ProductController.ResponseDto responseDto){
+        //key : competitor(경쟁사명):productId(상품아이디)
+        List<String> competitorName = Arrays.asList("네이버", "쿠팡", "SSG");
+        for(int i=0; i<competitorName.size(); i++){
+            String key = competitorName.get(i) + ":" + responseDto.getProductId();
+            changeCompetitorPrice(responseDto, key, competitorName.get(i));
+        }
+    }
+
+    public void changeCompetitorPrice(ProductController.ResponseDto responseDto, String key, String competitorName){
+        ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+        ProductController.CompetitorPriceDto dto = null;
+
+        if(valueOperations.get(key)==null){
+            System.out.println("값 없음");
+            Long price = responseDto.getCurrentPrice()+Long.valueOf((int)((Math.random()*10000)%1230-450)); // (현재 상품의 소비자가-450원) ~ (현재 상품의 소비자가+780원) 범위로 랜덤값?
+            price = price - price%10;
+            System.out.println(price);
+            int time = (int)((Math.random()*10000)%24+1); // 가격 설정 시간 랜덤값 (1~24시간)
+            valueOperations.set(key, String.valueOf(price));
+            redisTemplate.expireAt(key, Date.from(ZonedDateTime.now().plusHours(time).toInstant()));
+            dto = new ProductController.CompetitorPriceDto(competitorName, price);
+        }else {
+            System.out.println("값 있음" + valueOperations.get(key));
+            dto = new ProductController.CompetitorPriceDto(competitorName, Long.parseLong(valueOperations.get(key)));
+        }
+        responseDto.getCompetitorPrice().add(dto);
     }
 
 }
