@@ -1,7 +1,9 @@
 package com.brawkurly.moneytoring;
 
+import com.brawkurly.moneytoring.domain.ChangePrice;
 import com.brawkurly.moneytoring.domain.Item;
 import com.brawkurly.moneytoring.domain.ResponseDto;
+import com.brawkurly.moneytoring.repository.ChangePriceRepository;
 import com.brawkurly.moneytoring.repository.ItemRepository;
 import com.brawkurly.moneytoring.service.OrderService;
 import com.brawkurly.moneytoring.service.ProductService;
@@ -12,6 +14,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.Optional;
 
 
@@ -25,6 +29,8 @@ public class MoneytoringApplication {
 	private final OrderService orderService;
 
 	private final ProductService productService;
+
+	private final ChangePriceRepository changePriceRepository;
 
 	public static void main(String[] args) {
 		SpringApplication.run(MoneytoringApplication.class, args);
@@ -73,6 +79,10 @@ public class MoneytoringApplication {
 			// MySQL에 저장
 			findItem.changeCurrentAndFairPrice(item.getFairPrice());
 			itemRepository.save(findItem);
+
+			ChangePrice changePrice = new ChangePrice(findItem.getFairPrice(), new Date(), findItem);
+			changePriceRepository.save(changePrice);
+
 		}
 	}
 }
