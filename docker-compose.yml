@@ -1,0 +1,74 @@
+version: '3.7'
+
+services:
+  web:
+    container_name: nginx
+    image: nginx
+    ports:
+      - 80:80
+      - 8081:8081
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./build/front:/usr/share/nginx/html
+    depends_on:
+      - application
+    networks:
+      - default
+
+  database:
+    container_name: mysql_db
+    image: mysql:8.0.29
+    environment:
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: moneytoring
+      MYSQL_USER: ssafy
+      MYSQL_PASSWORD: ssafy
+      MYSQL_ROOT_PASSWORD: root
+      TZ: 'Asia/Seoul'
+    ports:
+      - "3306:3306"
+    volumes:
+      - "./db/conf.d:/etc/mysql/conf.d"
+      - "./db/data:/var/lib/mysql"
+      - "./db/initdb.d:/docker-entrypoint-initdb.d"
+      - "./data:/data"
+    command:
+      - "mysqld"
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_unicode_ci"
+      - "--lower_case_table_names=1"
+    networks:
+      - default
+
+  redis:
+    container_name: redis
+    image: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - "./db/redis:/data"
+    command:
+      - "--appendonly yes"
+    networks:
+      - default
+
+  application:
+    container_name: spring-boot
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql_db:3306/moneytoring?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&useLegacyDatetimeCode=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    depends_on:
+      - database
+      - redis
+    networks:
+      - default
+
+networks:
+  default:
