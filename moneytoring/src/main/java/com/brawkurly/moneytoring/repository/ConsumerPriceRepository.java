@@ -16,8 +16,8 @@ public interface ConsumerPriceRepository extends JpaRepository<ConsumerPrice, Lo
 
     List<ConsumerPrice> findTop20ByItemOrderByReservationTimeDesc(Item item);
 
-    @Query("select c.price as price, count(c.id) as cnt from ConsumerPrice c where c.purchaseTime is null group by c.price")
-    List<Map<String, Long>> findGroupByReserveCnt(Item item);
+    @Query("select c.price as price, count(c.id) as cnt from ConsumerPrice c where c.item = :item and c.purchaseTime is null group by c.price")
+    List<Map<String, Long>> findGroupByReserveCnt(@Param("item") Item item);
 
     @Query("select sum(c.price) from ConsumerPrice c where c.item=:item and c.purchaseTime between :startDatetime and :endDatetime")
     Long findAllByPurchaseTimeBetween(@Param("item") Item item, @Param("startDatetime") LocalDateTime startDatetime, @Param("endDatetime") LocalDateTime endDatetime);
