@@ -26,9 +26,4 @@ public class ConsumerPrice {
 
     @Column(name="purchase_time")
     private LocalDateTime purchaseTime;
-
-    public void ChangePrice(int price) {
-        this.price = price;
-        this.purchaseTime = LocalDateTime.now();
-    }
 }
