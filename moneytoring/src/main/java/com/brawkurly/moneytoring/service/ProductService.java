@@ -37,8 +37,8 @@ public class ProductService {
 
     private final ConsumerPriceRepository consumerPriceRepository;
 
-    public ProductController.ResponseDto getProductData(Long id){
-        ProductController.ResponseDto responseDto = new ProductController.ResponseDto();
+    public ResponseDto getProductData(Long id){
+        ResponseDto responseDto = new ResponseDto();
 
         /*
          * 적정 가격 컴포넌트
@@ -99,7 +99,7 @@ public class ProductService {
         return responseDto;
     }
 
-    public void consumerPopularity(String status, ProductController.ResponseDto responseDto) {
+    public void consumerPopularity(String status, ResponseDto responseDto) {
         for (Long i = 1L; i <= 8L; i++) {
             Item tmpItem = itemRepository.findById(i).get();
 
@@ -202,7 +202,7 @@ public class ProductService {
         return mapper;
     }
 
-    public void todayData(ProductController.ResponseDto responseDto, Item item){
+    public void todayData(ResponseDto responseDto, Item item){
 
         /*해당 상품 판매 데이터*/
         String purchaseKey = "consumer_price:" + "purchase:" + responseDto.getProductId();
@@ -238,7 +238,7 @@ public class ProductService {
         responseDto.setConsumerReservationCnt(reserveListOperations.size(reserveKey));
     }
 
-    public void changeCompetitor(ProductController.ResponseDto responseDto){
+    public void changeCompetitor(ResponseDto responseDto){
         //key : competitor(경쟁사명):productId(상품아이디)
         List<String> competitorName = Arrays.asList("네이버", "쿠팡", "SSG");
         for(int i=0; i<competitorName.size(); i++){
@@ -247,7 +247,7 @@ public class ProductService {
         }
     }
 
-    public void changeCompetitorPrice(ProductController.ResponseDto responseDto, String key, String competitorName){
+    public void changeCompetitorPrice(ResponseDto responseDto, String key, String competitorName){
         ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
         ProductController.CompetitorPriceDto dto = null;
 
@@ -267,7 +267,7 @@ public class ProductService {
         responseDto.getCompetitorPrice().add(dto);
     }
 
-    public void findFairPrice(ProductController.ResponseDto responseDto){
+    public void findFairPrice(ResponseDto responseDto){
         List<Map<String, Long>> consumerReserveCnt = findReserveCnt(responseDto.getProductId());
         long max = 0;
         long maxPrice = 0;
