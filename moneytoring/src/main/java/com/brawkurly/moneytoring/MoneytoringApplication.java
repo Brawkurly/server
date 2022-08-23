@@ -5,6 +5,7 @@ import com.brawkurly.moneytoring.domain.Item;
 import com.brawkurly.moneytoring.domain.ResponseDto;
 import com.brawkurly.moneytoring.repository.ChangePriceRepository;
 import com.brawkurly.moneytoring.repository.ItemRepository;
+import com.brawkurly.moneytoring.service.ConsumerPriceJdbcService;
 import com.brawkurly.moneytoring.service.OrderService;
 import com.brawkurly.moneytoring.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,8 @@ public class MoneytoringApplication {
 	private final ProductService productService;
 
 	private final ChangePriceRepository changePriceRepository;
+
+	private final ConsumerPriceJdbcService consumerPriceJdbcService;
 
 	public static void main(String[] args) {
 		SpringApplication.run(MoneytoringApplication.class, args);
@@ -84,5 +87,8 @@ public class MoneytoringApplication {
 			changePriceRepository.save(changePrice);
 
 		}
+
+		// 레디스에 있는 consumerPrice MySQL로 옮기기
+		consumerPriceJdbcService.post();
 	}
 }
