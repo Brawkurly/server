@@ -136,6 +136,9 @@ public class ProductService {
             }
             Optional<Item> item = itemRepository.findById(id);
             List<ConsumerPrice> consumerPriceList = consumerPriceRepository.findTop20ByItemOrderByReservationTimeDesc(item.get());
+            if (consumerPriceList.size() < needSize) {
+                needSize = consumerPriceList.size();
+            }
             if(consumerPriceList.size() > 0) {
                 for (int i = 0; i < needSize; i++) {
                     if (consumerPriceList.get(i) == null) {
@@ -288,7 +291,6 @@ public class ProductService {
             }
         }
 
-        if(max==0) responseDto.setFairPrice(responseDto.getFairPrice());
-        else responseDto.setFairPrice((int) maxPrice);
+        if(max>0) responseDto.setFairPrice((int) maxPrice);
     }
 }

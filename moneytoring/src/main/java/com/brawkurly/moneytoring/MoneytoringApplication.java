@@ -1,24 +1,30 @@
 package com.brawkurly.moneytoring;
 
 import com.brawkurly.moneytoring.domain.Item;
+import com.brawkurly.moneytoring.domain.ResponseDto;
 import com.brawkurly.moneytoring.repository.ItemRepository;
 import com.brawkurly.moneytoring.service.OrderService;
+import com.brawkurly.moneytoring.service.ProductService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import java.util.Optional;
+
 
 @EnableScheduling
 @SpringBootApplication
+@RequiredArgsConstructor
 public class MoneytoringApplication {
 
-	@Autowired
-	private ItemRepository itemRepository;
+	private final ItemRepository itemRepository;
 
-	@Autowired
-	private OrderService orderService;
+	private final OrderService orderService;
+
+	private final ProductService productService;
 
 	public static void main(String[] args) {
 		SpringApplication.run(MoneytoringApplication.class, args);
@@ -45,6 +51,28 @@ public class MoneytoringApplication {
 		}else{
 			//구매
 			orderService.addBuy(item.getName(), item.getCurrentPrice());
+		}
+	}
+
+	/*
+	* current_price, fair_price를 적정가로 바꾸기
+	* */
+	@Scheduled(cron = "0 0 0 * * ?", zone="Asia/Seoul")
+	public void updateProductCurrentPrice() {
+
+		// 각 상품별(id) 적정가 계산
+		for (Long i = 1L; i <= 8L; i++) {
+			Item findItem = itemRepository.findById(i).get();
+			// 적정가 구하기
+			ResponseDto item = new ResponseDto();
+			item.setProductId(i);
+			item.setSupplyPrice(findItem.getSupplyPrice());
+			item.setFairPrice(findItem.getSupplyPrice());
+			productService.findFairPrice(item);
+
+			// MySQL에 저장
+			findItem.changeCurrentAndFairPrice(item.getFairPrice());
+			itemRepository.save(findItem);
 		}
 	}
 }

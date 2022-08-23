@@ -26,4 +26,9 @@ public class Item {
 
     @Column(name="fair_price")
     private int fairPrice;
+
+    public void changeCurrentAndFairPrice(int price) {
+        this.currentPrice = price;
+        this.fairPrice = price;
+    }
 }
