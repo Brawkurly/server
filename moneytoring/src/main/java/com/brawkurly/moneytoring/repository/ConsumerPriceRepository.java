@@ -21,4 +21,6 @@ public interface ConsumerPriceRepository extends JpaRepository<ConsumerPrice, Lo
 
     @Query("select sum(c.price) from ConsumerPrice c where c.item=:item and c.purchaseTime between :startDatetime and :endDatetime")
     Long findAllByPurchaseTimeBetween(@Param("item") Item item, @Param("startDatetime") LocalDateTime startDatetime, @Param("endDatetime") LocalDateTime endDatetime);
+
+    List<ConsumerPrice> findConsumerPricesByItemAndPurchaseTimeIsNullAndPriceGreaterThanEqual(Item item, int price);
 }
