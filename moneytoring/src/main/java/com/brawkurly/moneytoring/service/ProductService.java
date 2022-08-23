@@ -149,7 +149,9 @@ public class ProductService {
             }
         } else {
             List<ConsumerPriceDto> consumerPriceDtoList = listOperations.range(key, 0, 20);
-            for (ConsumerPriceDto consumerPriceDto: consumerPriceDtoList) {
+            List<ConsumerPriceDto> mappedList = objectMapper().convertValue(consumerPriceDtoList, new TypeReference<List<ConsumerPriceDto>>() {});
+
+            for (ConsumerPriceDto consumerPriceDto: mappedList) {
                 result.add(new ConsumerRecentReserveDto(consumerPriceDto.getPrice(), consumerPriceDto.getReservationTime()));
             }
         }
@@ -274,16 +276,14 @@ public class ProductService {
         List<Map<String, Long>> consumerReserveCnt = findReserveCnt(responseDto.getProductId());
         long max = 0;
         long maxPrice = 0;
+        long cnt = 0;
 
-        for(int i=0; i<consumerReserveCnt.size(); i++){
+        for(int i=consumerReserveCnt.size()-1; i>=0; i--){
             long price = consumerReserveCnt.get(i).get("price");
             if(price<responseDto.getSupplyPrice()) break;
 
-            long sum = 0;
-            for(int k=i; k<consumerReserveCnt.size(); k++){
-                long cnt = consumerReserveCnt.get(k).get("cnt");
-                sum += price*cnt;
-            }
+            cnt += consumerReserveCnt.get(i).get("cnt");
+            long sum = (price-responseDto.getSupplyPrice())*cnt;
 
             if(max < sum){
                 max = sum;

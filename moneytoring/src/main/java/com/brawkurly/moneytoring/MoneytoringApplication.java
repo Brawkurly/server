@@ -1,9 +1,11 @@
 package com.brawkurly.moneytoring;
 
 import com.brawkurly.moneytoring.domain.ChangePrice;
+import com.brawkurly.moneytoring.domain.ConsumerPrice;
 import com.brawkurly.moneytoring.domain.Item;
 import com.brawkurly.moneytoring.domain.ResponseDto;
 import com.brawkurly.moneytoring.repository.ChangePriceRepository;
+import com.brawkurly.moneytoring.repository.ConsumerPriceRepository;
 import com.brawkurly.moneytoring.repository.ItemRepository;
 import com.brawkurly.moneytoring.service.ConsumerPriceJdbcService;
 import com.brawkurly.moneytoring.service.OrderService;
@@ -17,6 +19,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -34,6 +37,8 @@ public class MoneytoringApplication {
 	private final ChangePriceRepository changePriceRepository;
 
 	private final ConsumerPriceJdbcService consumerPriceJdbcService;
+
+	private final ConsumerPriceRepository consumerPriceRepository;
 
 	public static void main(String[] args) {
 		SpringApplication.run(MoneytoringApplication.class, args);
@@ -64,11 +69,10 @@ public class MoneytoringApplication {
 	}
 
 	/*
-	* current_price, fair_price를 적정가로 바꾸기
+	* 0시 0분 0초에 DB에 넣기
 	* */
 	@Scheduled(cron = "0 0 0 * * ?", zone="Asia/Seoul")
 	public void updateProductCurrentPrice() {
-
 		// 각 상품별(id) 적정가 계산
 		for (Long i = 1L; i <= 8L; i++) {
 			Item findItem = itemRepository.findById(i).get();
@@ -78,6 +82,14 @@ public class MoneytoringApplication {
 			item.setSupplyPrice(findItem.getSupplyPrice());
 			item.setFairPrice(findItem.getSupplyPrice());
 			productService.findFairPrice(item);
+
+			// MySQL에 해당 적정가 이상의 예약 가져오기
+			List<ConsumerPrice> consumerPriceList = consumerPriceRepository
+					.findConsumerPricesByItemAndPurchaseTimeIsNullAndPriceGreaterThanEqual(findItem, item.getFairPrice());
+			for (ConsumerPrice consumerPrice : consumerPriceList) {
+				consumerPrice.ChangePrice(item.getFairPrice());
+			}
+			consumerPriceRepository.saveAll(consumerPriceList);
 
 			// MySQL에 저장
 			findItem.changeCurrentAndFairPrice(item.getFairPrice());
