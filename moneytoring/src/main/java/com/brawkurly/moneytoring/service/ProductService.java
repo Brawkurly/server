@@ -40,7 +40,9 @@ public class ProductService {
     public ProductController.ResponseDto getProductData(Long id){
         ProductController.ResponseDto responseDto = new ProductController.ResponseDto();
 
-        /*적정 가격 컴포넌트*/
+        /*
+         * 적정 가격 컴포넌트
+         * */
         Optional<Item> item = itemRepository.findById(id);
         if(!item.isPresent()){
             throw new NoSuchElementException();
@@ -50,12 +52,16 @@ public class ProductService {
         responseDto.setCurrentPrice(item.get().getCurrentPrice());
         responseDto.setSupplyPrice(item.get().getSupplyPrice());
         responseDto.setFairPrice(item.get().getFairPrice());
+        findFairPrice(responseDto);
 
-        /*상품별 소비자 예약 현황 컴포넌트*/
+        /*
+         * 상품별 소비자 예약 현황 컴포넌트
+         * */
+        responseDto.setConsumerRecentReserve(findRecentReserve(id));
 
-        //responseDto.setConsumerRecentReserve(findRecentReserve(id));
-
-        /*상품별 마켓컬리 가격변동 컴포넌트*/
+        /*
+         * 상품별 마켓컬리 가격변동 컴포넌트
+         * */
         PageRequest pageRequest = PageRequest.of(0, 49, Sort.by(Sort.Direction.DESC, "createAt"));
         List<ChangePrice> changePriceList = changePriceRepository.changePriceList(item.get(), pageRequest);
         for(int i=0; i<changePriceList.size(); i++){
@@ -65,7 +71,9 @@ public class ProductService {
             responseDto.getChangePrice().add(changePriceDto);
         }
 
-        /*해당 상품의 가격대별 예약 수*/
+        /*
+         *해당 상품의 가격대별 예약 수
+         * */
         responseDto.setConsumerReserveCnt(findReserveCnt(id));
 
         /*실시간 인기 구매 상품 현황
@@ -73,12 +81,10 @@ public class ProductService {
          * */
         consumerPopularity("purchase", responseDto);
 
-
         /*실시간 인기 예약 상품 현황
          * key : consumer_price(테이블 명):status(상태-reserve):productId(상품아이디)
          * */
         consumerPopularity("reserve", responseDto);
-
 
         /*오늘 판매 현황 컴포넌트
          * key : consumer_price(테이블 명):status(상태-reserve):productId(상품아이디)
@@ -111,6 +117,7 @@ public class ProductService {
         else
             Collections.sort(responseDto.getConsumerPopularityReserve(), (o1, o2) -> (int) (o2.getCnt() - o1.getCnt()));
     }
+
     /*
      * 최근 해당 상품을 소비자가 예약 현황 상위 20개
      * */
@@ -260,4 +267,28 @@ public class ProductService {
         responseDto.getCompetitorPrice().add(dto);
     }
 
+    public void findFairPrice(ProductController.ResponseDto responseDto){
+        List<Map<String, Long>> consumerReserveCnt = findReserveCnt(responseDto.getProductId());
+        long max = 0;
+        long maxPrice = 0;
+
+        for(int i=0; i<consumerReserveCnt.size(); i++){
+            long price = consumerReserveCnt.get(i).get("price");
+            if(price<responseDto.getSupplyPrice()) break;
+
+            long sum = 0;
+            for(int k=i; k<consumerReserveCnt.size(); k++){
+                long cnt = consumerReserveCnt.get(k).get("cnt");
+                sum += price*cnt;
+            }
+
+            if(max < sum){
+                max = sum;
+                maxPrice = price;
+            }
+        }
+
+        if(max==0) responseDto.setFairPrice(responseDto.getFairPrice());
+        else responseDto.setFairPrice((int) maxPrice);
+    }
 }
