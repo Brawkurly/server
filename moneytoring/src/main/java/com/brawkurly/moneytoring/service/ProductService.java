@@ -215,11 +215,9 @@ public class ProductService {
         List<ConsumerPriceDto> purchaseMappedList = objectMapper().convertValue(purchaseConsumerPriceDtoList, new TypeReference<List<ConsumerPriceDto>>() {});
 
         /*오늘 하루 해당 상품의 총 판매 금액입니다.*/
-        Long sum = 0L;
-        for(int i=0; i<purchaseMappedList.size(); i++){
-            System.out.println(purchaseMappedList.get(i).getProductName() + " " + purchaseMappedList.get(i).getPrice());
-            sum += purchaseMappedList.get(i).getPrice();
-        }
+        int price = responseDto.getCurrentPrice();
+        int cnt = purchaseMappedList.size();
+        Long sum = Long.valueOf(price)*(cnt);
         responseDto.setTotalPrice(sum);
 
         /*오늘 하루 해당 상품의 총 판매 수입니다.*/
